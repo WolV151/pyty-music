@@ -9,7 +9,10 @@ import curses
 import os
 import pafy
 import vlc
+import configparser
 
+config = configparser.ConfigParser()
+config.read("mus_conf.ini")
 
 class MainPlayer():
     def __init__(self):
@@ -31,7 +34,7 @@ class MainPlayer():
         self.kb_thread: Thread = SearchInputThread(self._input_callback)
         self.select_thread: Thread = None
         self.video: vlc.Media = None
-        self.volume: int = 75
+        self.volume: int = int(config['VARS']['default_volume'])
 
         self.input_mode: bool = 0  # 0 for search mode, 1 for song/playlist control mode
 
@@ -62,12 +65,12 @@ class MainPlayer():
         print(len(self.playlist_mix))
         self._media_player_set_media(self.playlist_mix)
 
-    def _input_callback(self, inp:str) -> None:
-        if inp == "!q":
+    def _input_callback(self, inp: str) -> None:
+        if inp == str(config['CONTROL']['quit_app']):
             self.media_player.stop()
             exit()
 
-        if inp == "!c":
+        if inp == str(config['CONTROL']['enter_control']):
             self.input_mode = 1
 
         if self.input_mode == 0:
@@ -86,7 +89,7 @@ class MainPlayer():
         indecies: list[int] = []
         index: int = 0
         heading: str = "Pick a search result: "
-        
+
         for song in self.results:
             if song["resultType"] == "song" or song["resultType"] == "video":
                 titles.append(f"{song['title']} - {song['resultType']}")
@@ -107,35 +110,36 @@ class MainPlayer():
                 win.clear()
                 # win.addstr("Time: " + str(self.convert_millis(self.media_player.get_media_player().get_time()) + "/" + str(self.convert_millis(self.media_player().get_media_player().get_length()))))
                 win.addstr(str(key))
-                if str(key).lower() == "s":
+                if str(key).lower() == config['CONTROL']['exit_control']:
                     self.input_mode = 0
                     break
-                elif str(key) == "'":
-                    self.media_player.get_media_player().audio_set_volume(self.volume + 5)
-                    self.volume += 5
-                    # print(str(self.media_player.get_media_player().audio_get_volume()))
-                elif str(key) == ";":
-                    self.media_player.get_media_player().audio_set_volume(self.volume - 5)
-                    self.volume -= 5
-                    # print(str(self.media_player.get_media_player().audio_get_volume()))
-                elif str(key).lower() == "k":
+                elif str(key) == config['CONTROL']['volume_up']:
+                    self.media_player.get_media_player().audio_set_volume(
+                        self.volume + int(config['VARS']['volume_increase']))
+
+                    self.volume += int(config['VARS']['volume_increase'])
+                elif str(key) == config['CONTROL']['volume_down']:
+                    self.media_player.get_media_player().audio_set_volume(
+                        self.volume - int(config['VARS']['volume_increase']))
+
+                    self.volume -= int(config['VARS']['volume_increase'])
+                elif str(key).lower() == config['CONTROL']['pos_up']:
                     self.media_player.get_media_player().set_position(
                         self.media_player.get_media_player().get_position() - 0.1)
                     win.addstr(str(key))
-                elif str(key).lower() == "l":
+                elif str(key).lower() == config['CONTROL']['pos_down']:
                     self.media_player.get_media_player().set_position(
                         self.media_player.get_media_player().get_position() + 0.1)
-                elif str(key) == "KEY_LEFT":
+                elif str(key) == config['CONTROL']['next_media']:
                     self.media_player.previous()
-                elif str(key) == "KEY_RIGHT":
+                elif str(key) == config['CONTROL']['prev_media']:
                     self.media_player.next()
-                elif str(key) == " ":
+                elif str(key) == config['CONTROL']['pause_media']:
                     self.media_player.pause()
-                elif str(key) == "]":
+                elif str(key) == config['CONTROL']['last_media']:
                     self.media_player.play_item_at_index(
                         len(self.playlist_mix) - 1)
 
-                # TODO: set_position implementation
             except Exception:
                 pass
 
