@@ -14,5 +14,7 @@ all the song links in the list have been converted to playable media, they will 
 
 The search input will be available again. The newly searched songs will be appended to the end of the list.
 
-Additionally a special input can be entered to enter "control mode". In this mode, songs can be skipped in the list, the volume can be controlled and the
-player can be paused.
+Additionally a special input (default "!c") can be entered to enter "control mode". In this mode, songs can be skipped in the list, the volume can be controlled and the player can be paused.
+
+## Configuration
+Default keys for "control mode" can be viewed and edited in mus_conf.ini. Some default values can also be edited.
