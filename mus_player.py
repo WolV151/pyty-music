@@ -52,6 +52,11 @@ class MainPlayer():
         print(self.results)
         self.select_thread = SearchResultThread(self._pick_result_callback)
         self.select_thread.join()
+
+        print(self.song_index)
+        if self.song_index == -1:
+            return
+
         related_track_list: dict = self.yt.get_watch_playlist(
             videoId=self.results[self.song_index]["videoId"])["tracks"]  # gives the dict of the object
         self.video = pafy.new(
@@ -95,10 +100,19 @@ class MainPlayer():
                 titles.append(f"{song['title']} - {song['resultType']}")
                 indecies.append(index)
             index += 1
+        
+        indecies.append(index+1)
+        titles.append("Exit")
 
         selection, index_selection = pick(
             titles, heading, indicator='=>', default_index=0)
+
         self.song_index = indecies[index_selection]
+
+        print(selection)
+        if selection == "Exit":
+            self.song_index = -1
+        
 
     def _process_key_stroke(self, win) -> None:
         win.nodelay(True)
